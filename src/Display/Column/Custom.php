@@ -20,6 +20,11 @@ class Custom extends TableColumn
     protected $view = 'column.custom';
 
     /**
+     * @var bool
+     */
+    protected $orderable = false;
+
+    /**
      * Custom constructor.
      *
      * @param null|string $label
@@ -78,7 +83,6 @@ class Custom extends TableColumn
     {
         return parent::toArray() + [
             'value'  => $this->getValue($this->getModel()),
-            'append' => $this->getAppends(),
         ];
     }
 }

@@ -2,16 +2,16 @@
 
 namespace SleepingOwl\Admin\Display;
 
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
-use SleepingOwl\Admin\Contracts\Display\TabInterface;
-use SleepingOwl\Admin\Contracts\DisplayInterface;
-use SleepingOwl\Admin\Contracts\Form\ElementsInterface;
-use SleepingOwl\Admin\Contracts\FormElementInterface;
 use SleepingOwl\Admin\Contracts\FormInterface;
 use SleepingOwl\Admin\Contracts\Initializable;
+use SleepingOwl\Admin\Contracts\DisplayInterface;
+use SleepingOwl\Admin\Contracts\Display\TabInterface;
+use SleepingOwl\Admin\Contracts\FormElementInterface;
+use SleepingOwl\Admin\Contracts\Form\ElementsInterface;
 use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
 
 class DisplayTab implements TabInterface, DisplayInterface, FormInterface
@@ -48,10 +48,20 @@ class DisplayTab implements TabInterface, DisplayInterface, FormInterface
 
     /**
      * @param Renderable $content
+     * @param string|null $label
+     * @param string|null $icon
      */
-    public function __construct(Renderable $content)
+    public function __construct(Renderable $content, $label = null, $icon = null)
     {
         $this->content = $content;
+
+        if (! is_null($label)) {
+            $this->setLabel($label);
+        }
+
+        if (! is_null($icon)) {
+            $this->setIcon($icon);
+        }
     }
 
     /**

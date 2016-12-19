@@ -18,21 +18,21 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Upload extends Model
 {
+
     use \KodiComponents\Support\Upload;
 
     protected static function boot()
     {
         parent::boot();
 
-        static::saving(function(Upload $file) {
-
+        static::saving(function (Upload $file) {
             /** @var \Illuminate\Http\UploadedFile $uploadedFile */
             $uploadedFile = $file->file;
 
             $file->filename = $uploadedFile->getClientOriginalName();
-            $file->size = $uploadedFile->getSize();
-            $file->ext = $uploadedFile->getClientOriginalExtension();
-            $file->mime = $uploadedFile->getMimeType();
+            $file->size     = $uploadedFile->getSize();
+            $file->ext      = $uploadedFile->getClientOriginalExtension();
+            $file->mime     = $uploadedFile->getMimeType();
         }, -100);
     }
 
@@ -48,7 +48,7 @@ class Upload extends Model
     {
         $file = Upload::whereFile($file)->first();
 
-        if(is_null($file)) {
+        if (is_null($file)) {
             return false;
         }
 
@@ -64,7 +64,7 @@ class Upload extends Model
      */
     protected $appends = [
         'file_path',
-        'file_url'
+        'file_url',
     ];
 
     /**

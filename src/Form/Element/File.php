@@ -4,13 +4,18 @@ namespace SleepingOwl\Admin\Form\Element;
 
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Router;
 use KodiComponents\Support\Upload as UploadTrait;
 use SleepingOwl\Admin\Contracts\WithRoutesInterface;
 use SleepingOwl\Admin\Model\Upload;
+use Validator;
 
 class File extends NamedFormElement implements WithRoutesInterface
 {
+
     /**
      * @var string
      */
@@ -26,7 +31,7 @@ class File extends NamedFormElement implements WithRoutesInterface
         if (! $router->has($routeName)) {
             $router->post('{adminModel}/'.static::$route.'/{field}/{id?}', [
                 'as' => $routeName,
-                'uses' => 'SleepingOwl\Admin\Http\Controllers\UploadController@fromField'
+                'uses' => 'SleepingOwl\Admin\Http\Controllers\UploadController@fromField',
             ]);
         }
     }
@@ -59,7 +64,7 @@ class File extends NamedFormElement implements WithRoutesInterface
     public function saveFile(Upload $file)
     {
         $filename = $this->getUploadFileName($file);
-        $path = $this->getUploadPath($file);
+        $path     = $this->getUploadPath($file);
 
         $file->move($path, $filename);
 
@@ -210,7 +215,7 @@ class File extends NamedFormElement implements WithRoutesInterface
     }
 
     /**
-     * @param string      $rule
+     * @param string $rule
      * @param string|null $message
      *
      * @return $this
@@ -259,9 +264,9 @@ class File extends NamedFormElement implements WithRoutesInterface
     }
 
     /**
-     * @param Model  $model
+     * @param Model $model
      * @param string $attribute
-     * @param mixed  $value
+     * @param mixed $value
      */
     protected function setValue(Model $model, $attribute, $value)
     {

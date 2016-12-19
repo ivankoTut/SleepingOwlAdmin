@@ -1,3 +1,5 @@
+window.Admin.Settings.token = document.querySelector("meta[name='csrf-token']").getAttribute('content')
+
 /**
  * Underscore is a JavaScript library that provides a whole mess of useful
  * functional programming helpers without extending any built-in objects.
@@ -8,6 +10,8 @@
  */
 window._ = require('underscore');
 
+window.Admin.Events = require('./components/events');
+
 require('./libs/jquery')
 require('./libs/moment')
 require('./libs/i18next')
@@ -15,6 +19,7 @@ require('./libs/bootstrap')
 require('./libs/noty')
 require('./libs/select2')
 require('./libs/datetimepicker')
+require('./libs/daterangepicker')
 require('./libs/xeditable')
 require('./libs/magnific-popup')
 require('./libs/dropzone')

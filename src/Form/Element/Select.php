@@ -347,13 +347,10 @@ class Select extends NamedFormElement
             $attributes['disabled'] = 'disabled';
         }
 
-        if ($this->isNullable()) {
-            $attributes['data-nullable'] = 'true';
-        }
-
         $options = $this->getOptions();
 
         if ($this->isNullable()) {
+            $attributes['data-nullable'] = 'true';
             $options = [null => trans('sleeping_owl::lang.select.nothing')] + $options;
         }
 
@@ -433,6 +430,6 @@ class Select extends NamedFormElement
             return;
         }
 
-        return $value;
+        return parent::prepareValue($value);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace SleepingOwl\Admin\Form\Element;
 
-use Illuminate\Database\Eloquent\Model;
 use Request;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 
 class MultiSelect extends Select
@@ -19,11 +19,16 @@ class MultiSelect extends Select
     protected $deleteRelatedItem = false;
 
     /**
+     * @var string
+     */
+    protected $view = 'form.element.select';
+
+    /**
      * @return string
      */
     public function getName()
     {
-        return $this->name.'[]';
+        return parent::getName().'[]';
     }
 
     /**
@@ -90,12 +95,12 @@ class MultiSelect extends Select
             'multiple',
         ];
 
-        if ($this->isReadonly()) {
-            $attributes['disabled'] = 'disabled';
-        }
-
         if ($this->isTaggable()) {
             $attributes['class'] .= ' input-taggable';
+        }
+
+        if ($this->isReadonly()) {
+            $attributes['disabled'] = 'disabled';
         }
 
         return [

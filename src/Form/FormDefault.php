@@ -2,20 +2,20 @@
 
 namespace SleepingOwl\Admin\Form;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
-use Illuminate\Support\Collection;
-use KodiComponents\Support\HtmlAttributes;
 use Request;
+use Validator;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use KodiComponents\Support\HtmlAttributes;
+use SleepingOwl\Admin\Form\Element\Upload;
+use SleepingOwl\Admin\Contracts\FormInterface;
 use SleepingOwl\Admin\Contracts\DisplayInterface;
+use SleepingOwl\Admin\Contracts\RepositoryInterface;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use SleepingOwl\Admin\Contracts\FormButtonsInterface;
 use SleepingOwl\Admin\Contracts\FormElementInterface;
-use SleepingOwl\Admin\Contracts\FormInterface;
+use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
-use SleepingOwl\Admin\Contracts\RepositoryInterface;
-use SleepingOwl\Admin\Form\Element\Upload;
-use Validator;
 
 class FormDefault extends FormElements implements DisplayInterface, FormInterface
 {
@@ -300,6 +300,8 @@ class FormDefault extends FormElements implements DisplayInterface, FormInterfac
      * Save instance.
      *
      * @param ModelConfigurationInterface $modelConfiguration
+     *
+     * @return bool
      */
     public function saveForm(ModelConfigurationInterface $modelConfiguration)
     {
@@ -311,11 +313,26 @@ class FormDefault extends FormElements implements DisplayInterface, FormInterfac
 
         $this->saveBelongsToRelations();
 
+        $loaded = $this->getModel()->exists;
+
+        if ($modelConfiguration->fireEvent($loaded ? 'updating' : 'creating', true, $this->getModel()) === false) {
+            return false;
+        }
+
+        if ($modelConfiguration->fireEvent('saving', true, $this->getModel()) === false) {
+            return false;
+        }
+
         $this->getModel()->save();
 
         $this->saveHasOneRelations();
 
         parent::afterSave();
+
+        $modelConfiguration->fireEvent($loaded ? 'updated' : 'created', false, $this->getModel());
+        $modelConfiguration->fireEvent('saved', false, $this->getModel());
+
+        return true;
     }
 
     protected function saveBelongsToRelations()

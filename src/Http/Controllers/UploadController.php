@@ -81,9 +81,9 @@ class UploadController extends Controller
             throw new NotFoundHttpException('Field not found');
         }
 
-        $rules = $element->getUploadValidationRules();
+        $rules    = $element->getUploadValidationRules();
         $messages = $element->getUploadValidationMessages();
-        $labels = $element->getUploadValidationLabels();
+        $labels   = $element->getUploadValidationLabels();
 
         $validator = Validator::make($request->all(), $rules, $messages, $labels);
 
@@ -96,10 +96,8 @@ class UploadController extends Controller
             ], 400);
         }
 
-        $file = $request->file('file');
-
         $uploadedFile = Upload::create([
-            'file' => $file,
+            'file' => $request->file('file'),
         ]);
 
         return new JsonResponse([

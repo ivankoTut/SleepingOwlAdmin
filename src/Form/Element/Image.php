@@ -7,6 +7,7 @@ use SleepingOwl\Admin\Model\Upload;
 
 class Image extends File
 {
+
     /**
      * @var string
      */
@@ -43,11 +44,7 @@ class Image extends File
     {
         $settings = $this->getUploadSettings();
 
-        if (
-            class_exists('Intervention\Image\Facades\Image')
-            and
-            (bool) getimagesize($file->file_path)
-        ) {
+        if (class_exists('Intervention\Image\Facades\Image') and (bool) getimagesize($file->file_path)) {
             $image = \Intervention\Image\Facades\Image::make($file->file_path);
 
             foreach ($settings as $method => $args) {

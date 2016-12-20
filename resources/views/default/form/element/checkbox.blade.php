@@ -9,5 +9,5 @@
 		@include($template->getViewPath('form.element.partials.helptext'))
 	</div>
 
-	@include($template->getViewPath('form.element.errors'))
+	@include($template->getViewPath('form.element.partials.errors'))
 </div>

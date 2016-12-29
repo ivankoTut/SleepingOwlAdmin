@@ -2,14 +2,17 @@
 
 namespace SleepingOwl\Admin\Display;
 
-use Request;
-use Illuminate\Routing\Router;
 use Illuminate\Database\Eloquent\Collection;
-use SleepingOwl\Admin\Repository\TreeRepository;
-use SleepingOwl\Admin\Contracts\WithRoutesInterface;
-use SleepingOwl\Admin\Contracts\TreeRepositoryInterface;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Str;
+use Request;
 use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
-use SleepingOwl\Admin\Contracts\Display\DisplayExtensionInterface;
+use SleepingOwl\Admin\Contracts\TreeRepositoryInterface;
+use SleepingOwl\Admin\Contracts\WithRoutesInterface;
+use SleepingOwl\Admin\Display\Extension\Columns;
+use SleepingOwl\Admin\Display\Extension\Tree;
+use SleepingOwl\Admin\Repository\TreeRepository;
 
 /**
  * @method TreeRepositoryInterface getRepository()
@@ -22,8 +25,30 @@ class DisplayTree extends Display implements WithRoutesInterface
      */
     public static function registerRoutes(Router $router)
     {
-        $routeName = 'admin.display.tree.reorder';
-        if (! $router->has($routeName)) {
+
+        if (! $router->has($routeName = 'admin.display.tree.reorder')) {
+            $router->get('{adminModel}/tree', ['as' => $routeName, function (ModelConfigurationInterface $model) {
+                $display = $model->fireDisplay();
+
+                if ($display instanceof DisplayTabbed) {
+                    foreach ($display->getTabs() as $tab) {
+                        $content = $tab->getContent();
+                        if ($content instanceof self) {
+                            $display = $content;
+                            break;
+                        }
+                    }
+                }
+
+                return new JsonResponse([
+                    'data' => [
+                        'tree' => $display->getRepository()->getTree($display->getCollection()),
+                    ]
+                ]);
+            }]);
+        }
+
+        if (! $router->has($routeName = 'admin.display.tree.reorder')) {
             $router->post('{adminModel}/reorder', ['as' => $routeName, function (ModelConfigurationInterface $model) {
                 $display = $model->fireDisplay();
 
@@ -99,8 +124,9 @@ class DisplayTree extends Display implements WithRoutesInterface
     {
         parent::__construct();
 
-        // TODO: move tree building to extension
-        // $this->extend('tree', new Tree());
+        $this->extend('columns', $columns = new Columns());
+
+        $columns->setView('display.extensions.tree_columns');
     }
 
     public function initialize()
@@ -111,6 +137,10 @@ class DisplayTree extends Display implements WithRoutesInterface
              ->setParentField($this->getParentField())
              ->setOrderField($this->getOrderField())
              ->setRootParentId($this->getRootParentId());
+
+        $this->getColumns()->setControlColumn(
+            app('sleeping_owl.table.column')->treeControl()
+        );
     }
 
     /**
@@ -123,12 +153,21 @@ class DisplayTree extends Display implements WithRoutesInterface
 
     /**
      * @param string|callable $value
+     * @param string|null $title
      *
      * @return $this
      */
-    public function setValue($value)
+    public function setValue($value, $title = null)
     {
         $this->value = $value;
+
+        if (is_null($title)) {
+            $title = Str::title($value);
+        }
+
+        $this->setColumns([
+            app('sleeping_owl.table.column')->link($value, $title)
+        ]);
 
         return $this;
     }
@@ -256,11 +295,9 @@ class DisplayTree extends Display implements WithRoutesInterface
         return parent::toArray() + [
             'items' => $this->getRepository()->getTree($this->getCollection()),
             'reorderable' => $this->isReorderable(),
-            'url' => $model->getDisplayUrl(),
-            'value' => $this->getValue(),
             'creatable' => $model->isCreatable(),
             'createUrl' => $model->getCreateUrl($this->getParameters() + Request::all()),
-            'controls' => [app('sleeping_owl.table.column')->treeControl()],
+            'columns' => $this->getColumns()->toArray()['columns']
         ];
     }
 

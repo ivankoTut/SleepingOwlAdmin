@@ -7,16 +7,20 @@
         @endif
     </div>
 
-    <menu id="nestable-menu" class="panel-heading no-margin" >
-        <button type="button" data-action="expand-all" class="btn btn-sm">@lang('sleeping_owl::lang.tree.expand')</button>
-        <button type="button" data-action="collapse-all" class="btn btn-sm">@lang('sleeping_owl::lang.tree.collapse')</button>
-    </menu>
-
+    <table id="page-tree-header" class="table table-primary">
+        <thead>
+        <tr>
+            @foreach ($columns as $column)
+                <th {!! $column->getHeader()->htmlAttributesToString() !!}>
+                    {!! $column->getHeader()->render() !!}
+                </th>
+            @endforeach
+        </tr>
+        </thead>
+    </table>
     <div class="panel-body">
         <div class="dd nestable" data-url="{{ $url }}/reorder">
-            <ol class="dd-list">
-                @include(AdminTemplate::getViewPath('display.tree_children'), ['children' => $items])
-            </ol>
+            <ul id="page-tree-list" class="tree-items list-unstyled" data-level="0"></ul>
         </div>
     </div>
 </div>

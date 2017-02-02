@@ -1,16 +1,17 @@
 <?php
 
-use Illuminate\Contracts\Support\Renderable;
 use Mockery as m;
-use SleepingOwl\Admin\Contracts\DisplayInterface;
-use SleepingOwl\Admin\Contracts\Initializable;
+use SleepingOwl\Admin\Contracts\Form\FormElementInterface;
+use SleepingOwl\Admin\Contracts\Form\FormInterface;
+use SleepingOwl\Admin\Display\DisplayTab;
 use SleepingOwl\Admin\Contracts\Validable;
 use SleepingOwl\Admin\Contracts\WithModel;
-use SleepingOwl\Admin\Display\DisplayTab;
+use Illuminate\Contracts\Support\Renderable;
+use SleepingOwl\Admin\Contracts\Initializable;
+use SleepingOwl\Admin\Contracts\Display\DisplayInterface;
 
 class DisplayTabTest extends TestCase
 {
-
     public function tearDown()
     {
         m::close();
@@ -58,8 +59,8 @@ class DisplayTabTest extends TestCase
 
         $tab = $this->createMock($classname = DisplayTab::class);
 
-        $tab->expects($this->once())->method('setLabel')>with($this->equalTo($label = 'TestLabel'));
-        $tab->expects($this->once())->method('setIcon')>with($this->equalTo($icon = 'TestIcon'));
+        $tab->expects($this->once())->method('setLabel') > with($this->equalTo($label = 'TestLabel'));
+        $tab->expects($this->once())->method('setIcon') > with($this->equalTo($icon = 'TestIcon'));
 
         $reflectedClass = new ReflectionClass($classname);
         $constructor = $reflectedClass->getConstructor();
@@ -217,7 +218,7 @@ class DisplayTabTest extends TestCase
 
     public function test_sets_action_and_id_with_form_content()
     {
-        $renderable = m::mock(\SleepingOwl\Admin\Contracts\FormInterface::class);
+        $renderable = m::mock(FormInterface::class);
 
         $tab = new DisplayTab($renderable);
 
@@ -238,19 +239,22 @@ class DisplayTabTest extends TestCase
         $content = $tab->getContent();
         $content->shouldNotReceive('validateForm');
 
-        $this->assertNull($tab->validateForm(m::mock(\SleepingOwl\Admin\Contracts\ModelConfigurationInterface::class)));
+        $this->assertNull($tab->validateForm(
+            $this->getRequest(),
+            m::mock(\SleepingOwl\Admin\Contracts\ModelConfigurationInterface::class)
+        ));
     }
 
     public function test_validate_form_with_form_content()
     {
-        $renderable = m::mock(\SleepingOwl\Admin\Contracts\FormInterface::class);
+        $renderable = m::mock(FormInterface::class);
 
         $tab = new DisplayTab($renderable);
         $model = m::mock(\SleepingOwl\Admin\Contracts\ModelConfigurationInterface::class);
+        $request = $this->getRequest();
+        $renderable->shouldReceive('validateForm')->once()->with($request, $model);
 
-        $renderable->shouldReceive('validateForm')->once()->with($model);
-
-        $this->assertNull($tab->validateForm($model));
+        $this->assertNull($tab->validateForm($request, $model));
     }
 
     /**
@@ -263,18 +267,22 @@ class DisplayTabTest extends TestCase
         $content = $tab->getContent();
         $content->shouldNotReceive('saveForm');
 
-        $this->assertEquals($tab, $tab->saveForm(m::mock(\SleepingOwl\Admin\Contracts\ModelConfigurationInterface::class)));
+        $this->assertNull($tab->saveForm(
+            $this->getRequest(), m::mock(\SleepingOwl\Admin\Contracts\ModelConfigurationInterface::class)
+        ));
     }
 
     public function test_save_form_with_form_content()
     {
-        $renderable = m::mock(\SleepingOwl\Admin\Contracts\FormInterface::class);
+        $renderable = m::mock(FormInterface::class);
+
+        $request = $this->getRequest();
 
         $tab = new DisplayTab($renderable);
         $model = m::mock(\SleepingOwl\Admin\Contracts\ModelConfigurationInterface::class);
-        $renderable->shouldReceive('saveForm')->once()->with($model);
+        $renderable->shouldReceive('saveForm')->once()->with($request, $model);
 
-        $this->assertEquals($tab, $tab->saveForm($model));
+        $this->assertNull($tab->saveForm($request, $model));
     }
 
     /**
@@ -295,7 +303,7 @@ class DisplayTabTest extends TestCase
 
     public function test_sets_model_with_modelable_content()
     {
-        $renderable = m::mock(\SleepingOwl\Admin\Contracts\FormInterface::class);
+        $renderable = m::mock(FormInterface::class);
 
         $tab = new DisplayTab($renderable);
         $model = m::mock(\Illuminate\Database\Eloquent\Model::class);
@@ -355,8 +363,10 @@ class DisplayTabTest extends TestCase
         $content->shouldNotReceive('getValue');
         $content->shouldNotReceive('isReadonly');
 
-        $this->assertNull($tab->save());
-        $this->assertNull($tab->afterSave());
+        $request = $this->getRequest();
+
+        $this->assertNull($tab->save($request));
+        $this->assertNull($tab->afterSave($request));
         $this->assertNull($tab->getValue());
         $this->assertFalse($tab->isReadonly());
     }
@@ -367,15 +377,18 @@ class DisplayTabTest extends TestCase
      */
     public function test_save_with_savable_content()
     {
-        $renderable = m::mock(\SleepingOwl\Admin\Contracts\FormElementInterface::class);
-        $renderable->shouldReceive('save')->once();
-        $renderable->shouldReceive('afterSave')->once();
+        $request = $this->getRequest();
+
+        $renderable = m::mock(FormElementInterface::class);
+        $renderable->shouldReceive('save')->once()->with($request);
+        $renderable->shouldReceive('afterSave')->once()->with($request);
+
         $renderable->shouldReceive('getValue')->once()->andReturn($value = 'test');
         $renderable->shouldReceive('isReadonly')->once()->andReturn(true);
         $tab = new DisplayTab($renderable);
 
-        $tab->save();
-        $tab->afterSave();
+        $tab->save($request);
+        $tab->afterSave($request);
         $this->assertEquals($value, $tab->getValue());
         $this->assertTrue($tab->isReadonly());
     }
@@ -425,14 +438,14 @@ class DisplayTabTest extends TestCase
     }
 }
 
-abstract class DisplayTabTestInitializable implements Renderable, Initializable {
-
+abstract class DisplayTabTestInitializable implements Renderable, Initializable
+{
 }
 
-abstract class DisplayTabTestWithModel implements Renderable, WithModel {
-
+abstract class DisplayTabTestWithModel implements Renderable, WithModel
+{
 }
 
-abstract class DisplayTabTestValidable implements Renderable, Validable {
-
+abstract class DisplayTabTestValidable implements Renderable, Validable
+{
 }

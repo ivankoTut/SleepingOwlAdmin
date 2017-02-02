@@ -2,11 +2,12 @@
 
 namespace SleepingOwl\Admin\Display\Extension;
 
+use Request;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Renderable;
 use SleepingOwl\Admin\Display\Column\Control;
 use SleepingOwl\Admin\Contracts\Initializable;
-use SleepingOwl\Admin\Contracts\ColumnInterface;
+use SleepingOwl\Admin\Contracts\Display\ColumnInterface;
 
 class Columns extends Extension implements Initializable, Renderable
 {
@@ -101,7 +102,7 @@ class Columns extends Extension implements Initializable, Renderable
     }
 
     /**
-     * @return Collection|\SleepingOwl\Admin\Contracts\ColumnInterface[]
+     * @return Collection|\SleepingOwl\Admin\Contracts\Display\ColumnInterface[]
      */
     public function all()
     {
@@ -111,7 +112,7 @@ class Columns extends Extension implements Initializable, Renderable
     /**
      * @param $columns
      *
-     * @return \SleepingOwl\Admin\Contracts\DisplayInterface
+     * @return \SleepingOwl\Admin\Contracts\Display\DisplayInterface
      */
     public function set($columns)
     {
@@ -192,5 +193,34 @@ class Columns extends Extension implements Initializable, Renderable
         }
 
         return app('sleeping_owl.template')->view($this->getView(), $params)->render();
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     */
+    public function modifyQuery(\Illuminate\Database\Eloquent\Builder $query)
+    {
+        $orders = Request::input('order', []);
+
+        $columns = $this->all();
+
+        if (! is_int(key($orders))) {
+            $orders = [$orders];
+        }
+
+        foreach ($orders as $order) {
+            $columnIndex = array_get($order, 'column');
+            $direction = array_get($order, 'dir', 'asc');
+
+            if (! $columnIndex && $columnIndex !== '0') {
+                continue;
+            }
+
+            $column = $columns->get($columnIndex);
+
+            if ($column instanceof ColumnInterface && $column->isOrderable()) {
+                $column->orderBy($query, $direction);
+            }
+        }
     }
 }

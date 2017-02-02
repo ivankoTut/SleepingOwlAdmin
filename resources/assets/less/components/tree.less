@@ -1,0 +1,86 @@
+.tree-items {
+  margin: 0;
+
+  .tree-item {
+    line-height: 25px;
+    position: relative;
+    padding: 5px 10px;
+    border-bottom: 1px solid #ccc;
+
+    .item-expander {
+      margin-left: -17px;
+      cursor: pointer;
+    }
+
+    &:hover {
+      .item-preview {
+        display: inline;
+      }
+    }
+  }
+
+  li {
+    &:nth-child(even) {
+      & > .tree-item {
+        background-color: #f9f9f9;
+      }
+    }
+
+    &:hover {
+      & > .tree-item {
+        background-color: #fff;
+
+        &:hover {
+          background-color: #fdffbe;
+        }
+
+        a {
+          color: #333435;
+        }
+      }
+    }
+
+    &.map-placeholder {
+      height: 42px;
+      line-height: 42px;
+      background-color: lighten(#fdffbe, 10%);
+    }
+  }
+
+  .ui-sortable-helper > .tree-item {
+    border: none;
+  }
+
+  .ulX(@index, @ul, @padding) when (@index < 10) {
+    @item: ~"@{ul} .tree-item div:first-child";
+    @{item} {
+      padding-left: @padding + 20px;
+    }
+    .ulX(@index + 1, '@{ul} ul', @padding + 20px);
+  }
+
+  .ulX(1, ul, 0);
+
+  .helper-ul {
+    border: 1px solid #0088CC;
+    padding: 5px;
+    background-color: lighten(#fdffbe, 10%);
+  }
+
+  .map-drag {
+    .page-item {
+      border: 1px dashed #ccc;
+    }
+  }
+
+  .item-preview {
+    display: none;
+    margin-left: 10px;
+  }
+
+  .columns {
+    > div {
+      float: left;
+    }
+  }
+}

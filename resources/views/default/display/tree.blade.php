@@ -18,10 +18,8 @@
         </tr>
         </thead>
     </table>
-    <div class="panel-body">
-        <div class="dd nestable" data-url="{{ $url }}/reorder">
-            <ul id="page-tree-list" class="tree-items list-unstyled" data-level="0"></ul>
-        </div>
-    </div>
+    <ul id="page-tree-list" class="tree-items list-unstyled" data-level="0">
+        @include(AdminTemplate::getViewPath('display.partials.tree_children'), ['items' => $items])
+    </ul>
 </div>
 

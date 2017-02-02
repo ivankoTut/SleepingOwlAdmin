@@ -3,18 +3,20 @@
 namespace SleepingOwl\Admin\Form;
 
 use Closure;
+use Illuminate\Http\Request;
+use SleepingOwl\Admin\Contracts\Template\TemplateInterface;
 use SleepingOwl\Admin\Traits\Assets;
 use Illuminate\Database\Eloquent\Model;
 use SleepingOwl\Admin\Traits\Renderable;
 use SleepingOwl\Admin\Traits\VisibleCondition;
-use SleepingOwl\Admin\Contracts\FormElementInterface;
+use SleepingOwl\Admin\Contracts\Form\FormElementInterface;
 
 abstract class FormElement implements FormElementInterface
 {
     use Assets, VisibleCondition, Renderable;
 
     /**
-     * @var \SleepingOwl\Admin\Contracts\TemplateInterface
+     * @var TemplateInterface
      */
     protected $template;
 
@@ -37,6 +39,11 @@ abstract class FormElement implements FormElementInterface
      * @var bool
      */
     protected $readonly = false;
+
+    /**
+     * @var mixed
+     */
+    protected $value;
 
     public function __construct()
     {
@@ -190,19 +197,36 @@ abstract class FormElement implements FormElementInterface
      */
     public function getValue()
     {
+        return $this->value;
     }
 
     /**
+     * @param mixed $value
+     *
+     * @return $this
+     */
+    public function setValue($value)
+    {
+        $this->value = $value;
+
+        return $this;
+    }
+
+    /**
+     * @param Request $request
+     *
      * @return void
      */
-    public function save()
+    public function save(Request $request)
     {
     }
 
     /**
+     * @param Request $request
+     *
      * @return void
      */
-    public function afterSave()
+    public function afterSave(Request $request)
     {
     }
 

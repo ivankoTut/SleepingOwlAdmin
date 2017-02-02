@@ -2,24 +2,29 @@
 
 namespace SleepingOwl\Admin\Http\Controllers;
 
-use Breadcrumbs;
-use AdminTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
-use SleepingOwl\Admin\Contracts\FormInterface;
+use SleepingOwl\Admin\Contracts\AdminInterface;
+use Illuminate\Contracts\Foundation\Application;
+use SleepingOwl\Admin\Contracts\Form\FormInterface;
 use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
 use SleepingOwl\Admin\Contracts\Display\ColumnEditableInterface;
+use SleepingOwl\Admin\Model\ModelConfiguration;
 
 class AdminController extends Controller
 {
     /**
-     * @var \SleepingOwl\Admin\Navigation
+     * @var \DaveJamesMiller\Breadcrumbs\Manager
      */
-    public $navigation;
+    protected $breadcrumbs;
+
+    /**
+     * @var AdminInterface
+     */
+    protected $admin;
 
     /**
      * @var
@@ -27,31 +32,34 @@ class AdminController extends Controller
     private $parentBreadcrumb = 'home';
 
     /**
-     * @var \Illuminate\Contracts\Foundation\Application
+     * @var Application
      */
-    public $application;
+    public $app;
 
     /**
      * AdminController constructor.
      *
      * @param Request $request
-     * @param \Illuminate\Contracts\Foundation\Application $application
+     * @param AdminInterface $admin
+     * @param Application $application
      */
-    public function __construct(Request $request, \Illuminate\Contracts\Foundation\Application $application)
+    public function __construct(Request $request, AdminInterface $admin, Application $application)
     {
-        $this->application = $application;
-        $this->navigation = $application['sleeping_owl.navigation'];
-        $this->navigation->setCurrentUrl($request->url());
+        $this->app = $application;
+        $this->admin = $admin;
+        $this->breadcrumbs = $admin->template()->breadcrumbs();
 
-        if (! Breadcrumbs::exists('home')) {
-            Breadcrumbs::register('home', function ($breadcrumbs) {
+        $admin->navigation()->setCurrentUrl($request->url());
+
+        if (! $this->breadcrumbs->exists('home')) {
+            $this->breadcrumbs->register('home', function ($breadcrumbs) {
                 $breadcrumbs->push(trans('sleeping_owl::lang.dashboard'), route('admin.dashboard'));
             });
         }
 
         $breadcrumbs = [];
 
-        if ($currentPage = $this->navigation->getCurrentPage()) {
+        if ($currentPage = $admin->navigation()->getCurrentPage()) {
             foreach ($currentPage->getPathArray() as $page) {
                 $breadcrumbs[] = [
                     'id' => $page['id'],
@@ -65,8 +73,8 @@ class AdminController extends Controller
         }
 
         foreach ($breadcrumbs as  $breadcrumb) {
-            if (! Breadcrumbs::exists($breadcrumb['id'])) {
-                Breadcrumbs::register($breadcrumb['id'], function ($breadcrumbs) use ($breadcrumb) {
+            if (! $this->breadcrumbs->exists($breadcrumb['id'])) {
+                $this->breadcrumbs->register($breadcrumb['id'], function ($breadcrumbs) use ($breadcrumb) {
                     $breadcrumbs->parent($breadcrumb['parent']);
                     $breadcrumbs->push($breadcrumb['title'], $breadcrumb['url']);
                 });
@@ -96,7 +104,7 @@ class AdminController extends Controller
     public function getDashboard()
     {
         return $this->renderContent(
-            AdminTemplate::view('dashboard'),
+            $this->admin->template()->view('dashboard'),
             trans('sleeping_owl::lang.dashboard')
         );
     }
@@ -139,10 +147,9 @@ class AdminController extends Controller
 
     /**
      * @param ModelConfigurationInterface $model
+     * @param Request $request
      *
      * @return \Illuminate\Http\RedirectResponse
-     *
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      */
     public function postStore(ModelConfigurationInterface $model, Request $request)
     {
@@ -157,9 +164,9 @@ class AdminController extends Controller
 
         if ($createForm instanceof FormInterface) {
             try {
-                $createForm->validateForm($model);
+                $createForm->validateForm($request, $model);
 
-                if ($createForm->saveForm($model) === false) {
+                if ($createForm->saveForm($request, $model) === false) {
                     return redirect()->back()->with([
                         '_redirectBack' => $backUrl,
                     ]);
@@ -253,9 +260,9 @@ class AdminController extends Controller
 
         if ($editForm instanceof FormInterface) {
             try {
-                $editForm->validateForm($model);
+                $editForm->validateForm($request, $model);
 
-                if ($editForm->saveForm($model) === false) {
+                if ($editForm->saveForm($request, $model) === false) {
                     return redirect()->back()->with([
                         '_redirectBack' => $backUrl,
                     ]);
@@ -302,7 +309,6 @@ class AdminController extends Controller
 
     /**
      * @param ModelConfigurationInterface $model
-     *
      * @param Request $request
      *
      * @return bool
@@ -312,7 +318,6 @@ class AdminController extends Controller
     public function inlineEdit(ModelConfigurationInterface $model, Request $request)
     {
         $field = $request->input('name');
-        $value = $request->input('value');
         $id = $request->input('pk');
 
         $display = $model->fireDisplay();
@@ -339,7 +344,7 @@ class AdminController extends Controller
             return;
         }
 
-        $column->save($value);
+        $column->save($request, $model);
 
         $model->fireEvent('updated', false, $item);
     }
@@ -461,7 +466,7 @@ class AdminController extends Controller
             $title = $model->getTitle();
         }
 
-        return AdminTemplate::view('_layout.inner')
+        return $this->admin->template()->view('_layout.inner')
             ->with('title', $title)
             ->with('content', $content)
             ->with('breadcrumbKey', $this->parentBreadcrumb);
@@ -479,7 +484,7 @@ class AdminController extends Controller
             $content = $content->render();
         }
 
-        return AdminTemplate::view('_layout.inner')
+        return $this->admin->template()->view('_layout.inner')
             ->with('title', $title)
             ->with('content', $content)
             ->with('breadcrumbKey', $this->parentBreadcrumb);
@@ -496,7 +501,7 @@ class AdminController extends Controller
         }
 
         $data = [
-            'locale' => $this->application->getLocale(),
+            'locale' => $this->app->getLocale(),
             'url_prefix' => config('sleeping_owl.url_prefix'),
             'base_url' => asset('/'),
             'lang' => $lang,
@@ -552,7 +557,7 @@ class AdminController extends Controller
      */
     protected function registerBreadcrumb($title, $parent)
     {
-        Breadcrumbs::register('render', function ($breadcrumbs) use ($title, $parent) {
+        $this->breadcrumbs->register('render', function ($breadcrumbs) use ($title, $parent) {
             $breadcrumbs->parent($parent);
             $breadcrumbs->push($title);
         });

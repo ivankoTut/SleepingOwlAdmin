@@ -3,7 +3,6 @@
 namespace SleepingOwl\Admin\Display;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Str;
 use Request;
@@ -11,7 +10,6 @@ use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
 use SleepingOwl\Admin\Contracts\TreeRepositoryInterface;
 use SleepingOwl\Admin\Contracts\WithRoutesInterface;
 use SleepingOwl\Admin\Display\Extension\Columns;
-use SleepingOwl\Admin\Display\Extension\Tree;
 use SleepingOwl\Admin\Repository\TreeRepository;
 
 /**
@@ -25,48 +23,9 @@ class DisplayTree extends Display implements WithRoutesInterface
      */
     public static function registerRoutes(Router $router)
     {
-
-        if (! $router->has($routeName = 'admin.display.tree.reorder')) {
-            $router->get('{adminModel}/tree', ['as' => $routeName, function (ModelConfigurationInterface $model) {
-                $display = $model->fireDisplay();
-
-                if ($display instanceof DisplayTabbed) {
-                    foreach ($display->getTabs() as $tab) {
-                        $content = $tab->getContent();
-                        if ($content instanceof self) {
-                            $display = $content;
-                            break;
-                        }
-                    }
-                }
-
-                return new JsonResponse([
-                    'data' => [
-                        'tree' => $display->getRepository()->getTree($display->getCollection()),
-                    ]
-                ]);
-            }]);
-        }
-
-        if (! $router->has($routeName = 'admin.display.tree.reorder')) {
-            $router->post('{adminModel}/reorder', ['as' => $routeName, function (ModelConfigurationInterface $model) {
-                $display = $model->fireDisplay();
-
-                if ($display instanceof DisplayTabbed) {
-                    $display->getTabs()->each(function ($tab) {
-                        $content = $tab->getContent();
-                        if ($content instanceof self) {
-                            $content->getRepository()->reorder(
-                                Request::input('data')
-                            );
-                        }
-                    });
-                } else {
-                    $display->getRepository()->reorder(
-                        Request::input('data')
-                    );
-                }
-            }]);
+        $routeName = 'admin.display.tree.reorder';
+        if (! $router->has($routeName)) {
+            $router->post('{adminModel}/reorder', ['as' => $routeName, 'uses' => 'SleepingOwl\Admin\Http\Controllers\DisplayController@treeReorder']);
         }
     }
 

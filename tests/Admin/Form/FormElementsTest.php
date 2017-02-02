@@ -6,7 +6,7 @@ use SleepingOwl\Admin\Contracts\Validable;
 use SleepingOwl\Admin\Contracts\WithModel;
 use Illuminate\Contracts\Support\Arrayable;
 use SleepingOwl\Admin\Contracts\Initializable;
-use SleepingOwl\Admin\Contracts\FormElementInterface;
+use SleepingOwl\Admin\Contracts\Form\FormElementInterface;
 
 class FormElementsTest extends TestCase
 {
@@ -145,9 +145,11 @@ class FormElementsTest extends TestCase
             $element6 = m::mock(FormElementsTestInitializableMockWithoutValidable::class),
         ]);
 
+        $request = $this->getRequest();
+
         $element1->shouldReceive('isReadonly')->once()->andReturn(false);
         $element1->shouldReceive('isVisible')->once()->andReturn(true);
-        $element1->shouldReceive('save')->once();
+        $element1->shouldReceive('save')->once()->with($request);
 
         $element2->shouldReceive('isReadonly')->once()->andReturn(true);
         $element2->shouldNotReceive('isVisible');
@@ -167,7 +169,7 @@ class FormElementsTest extends TestCase
         $element1->shouldNotReceive('save');
 
         $this->assertNull(
-            $element->save()
+            $element->save($request)
         );
     }
 
@@ -186,9 +188,11 @@ class FormElementsTest extends TestCase
             $element6 = m::mock(FormElementsTestInitializableMockWithoutValidable::class),
         ]);
 
+        $request = $this->getRequest();
+
         $element1->shouldReceive('isReadonly')->once()->andReturn(false);
         $element1->shouldReceive('isVisible')->once()->andReturn(true);
-        $element1->shouldReceive('afterSave')->once();
+        $element1->shouldReceive('afterSave')->once()->with($request);
 
         $element2->shouldReceive('isReadonly')->once()->andReturn(true);
         $element2->shouldNotReceive('isVisible');
@@ -208,7 +212,7 @@ class FormElementsTest extends TestCase
         $element1->shouldNotReceive('afterSave');
 
         $this->assertNull(
-            $element->afterSave()
+            $element->afterSave($request)
         );
     }
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace SleepingOwl\Admin\Contracts;
+namespace SleepingOwl\Admin\Contracts\Form;
 
 use Illuminate\Validation\ValidationException;
+use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
 use SleepingOwl\Admin\Exceptions\Form\FormException;
-use SleepingOwl\Admin\Contracts\Form\ElementsInterface;
 
 interface FormInterface extends FormElementInterface, ElementsInterface
 {
@@ -31,18 +31,22 @@ interface FormInterface extends FormElementInterface, ElementsInterface
     public function setId($id);
 
     /**
+     * @param \Illuminate\Http\Request $request
      * @param ModelConfigurationInterface $model
      *
      * @throws ValidationException
      *
      * @return void
      */
-    public function validateForm(ModelConfigurationInterface $model);
+    public function validateForm(\Illuminate\Http\Request $request, ModelConfigurationInterface $model = null);
 
     /**
      * Save model.
      *
+     * @param \Illuminate\Http\Request $request
      * @param ModelConfigurationInterface $model
+     *
+     * @return void
      */
-    public function saveForm(ModelConfigurationInterface $model);
+    public function saveForm(\Illuminate\Http\Request $request, ModelConfigurationInterface $model = null);
 }

@@ -1,11 +1,14 @@
 <?php
 
 use Mockery as m;
+use SleepingOwl\Admin\Contracts\Display\ColumnInterface;
 use SleepingOwl\Admin\Display\TableColumn;
 use SleepingOwl\Admin\Contracts\Display\TableHeaderColumnInterface;
 
 class TableColumnTest extends TestCase
 {
+    use \SleepingOwl\Tests\AssetsTesterTrait;
+
     public function tearDown()
     {
         m::close();
@@ -28,8 +31,8 @@ class TableColumnTest extends TestCase
     public function test_constructor_without_label()
     {
         $this->app->instance(TableHeaderColumnInterface::class, $header = m::mock(TableHeaderColumnInterface::class));
-        PackageManager::shouldReceive('load')->once();
-        PackageManager::shouldReceive('add')->once();
+
+        $this->packageIncluded();
 
         $header->shouldNotReceive('setTitle');
 
@@ -56,7 +59,7 @@ class TableColumnTest extends TestCase
     {
         $column = $this->getColumn();
 
-        Meta::shouldReceive('loadPackage')->once();
+        $this->packageInitialized();
 
         $column->initialize();
     }
@@ -100,7 +103,7 @@ class TableColumnTest extends TestCase
 
         $this->assertNull($column->getAppends());
 
-        $this->assertEquals($column, $column->append($append = m::mock(\SleepingOwl\Admin\Contracts\ColumnInterface::class)));
+        $this->assertEquals($column, $column->append($append = m::mock(ColumnInterface::class)));
 
         $this->assertEquals($append, $column->getAppends());
     }
@@ -128,7 +131,7 @@ class TableColumnTest extends TestCase
     {
         $column = $this->getColumn();
 
-        $column->append($append = m::mock(\SleepingOwl\Admin\Contracts\ColumnInterface::class));
+        $column->append($append = m::mock(ColumnInterface::class));
         $model = new TableColumnTestModel();
         $append->shouldReceive('setModel')->with($model);
         $column->setModel($model);
@@ -147,7 +150,8 @@ class TableColumnTest extends TestCase
         $this->assertFalse($column->isOrderable());
         $header->shouldReceive('setOrderable')->with(true);
 
-        $this->assertEquals($column, $column->setOrderable(function () {}));
+        $this->assertEquals($column, $column->setOrderable(function () {
+        }));
         $this->assertTrue($column->isOrderable());
     }
 
@@ -227,7 +231,7 @@ class TableColumnTest extends TestCase
         $column = $this->getColumn();
 
         $column->setModel($model = new TableColumnTestModel());
-        $column->append($append = m::mock(\SleepingOwl\Admin\Contracts\ColumnInterface::class));
+        $column->append($append = m::mock(ColumnInterface::class));
 
         $column->setHtmlAttribute('class', 'test');
 

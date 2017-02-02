@@ -49,6 +49,7 @@ class AdminSectionsServiceProvider extends ServiceProvider
         if (is_null($namespace)) {
             $namespace = config('sleeping_owl.policies_namespace', '\\App\\Policies\\');
         }
+
         $policies = [];
         foreach ($this->sections as $model => $section) {
             $policies[$section] = $namespace.class_basename($section).'SectionModelPolicy';

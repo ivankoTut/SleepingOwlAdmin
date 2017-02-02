@@ -10,7 +10,6 @@ use Illuminate\Support\ServiceProvider;
 use SleepingOwl\Admin\Widgets\WidgetsRegistry;
 use SleepingOwl\Admin\Exceptions\TemplateException;
 use SleepingOwl\Admin\Contracts\RepositoryInterface;
-use Illuminate\Contracts\View\Factory as ViewFactory;
 use SleepingOwl\Admin\Contracts\Form\FormButtonsInterface;
 use SleepingOwl\Admin\Model\ModelConfigurationManager;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -36,17 +35,9 @@ class AdminServiceProvider extends ServiceProvider
         });
 
         $this->app->booted(function () {
-            $this->app['sleeping_owl.widgets']->placeWidgets(
-                $this->app[ViewFactory::class]
-            );
-        });
-
-        $this->app->booted(function () {
             $this->registerCustomRoutes();
             $this->registerDefaultRoutes();
             $this->registerNavigationFile();
-
-            $this->app['sleeping_owl']->initialize();
         });
 
         ModelConfigurationManager::setEventDispatcher($this->app['events']);
@@ -246,11 +237,11 @@ class AdminServiceProvider extends ServiceProvider
 
     protected function registerNavigationFile()
     {
-        if (file_exists($navigation = $this->getBootstrapPath('navigation.php'))) {
-            $items = include $navigation;
+        if (file_exists($navigationPath = $this->getBootstrapPath('navigation.php'))) {
+            $sitemap = include $navigationPath;
 
-            if (is_array($items)) {
-                $this->app['sleeping_owl.navigation']->setFromArray($items);
+            if (is_array($sitemap)) {
+                $this->app['sleeping_owl.navigation']->setFromArray($sitemap);
             }
         }
     }

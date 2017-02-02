@@ -7,7 +7,7 @@ use SleepingOwl\Admin\Contracts\Template\MetaInterface;
 use SleepingOwl\Admin\Contracts\Template\TemplateInterface;
 use SleepingOwl\Admin\Contracts\Navigation\NavigationInterface;
 
-interface AdminInterface extends Initializable
+interface AdminInterface
 {
     /**
      * @param ModelConfigurationInterface $model

@@ -7,6 +7,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\ProviderRepository;
+use SleepingOwl\Admin\Configuration\ManagesContext;
 use SleepingOwl\Admin\Contracts\AdminInterface;
 use SleepingOwl\Admin\Contracts\Initializable;
 use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
@@ -20,6 +21,8 @@ use SleepingOwl\Admin\Navigation\Page;
 
 class Admin implements AdminInterface
 {
+    use ManagesContext;
+
     /**
      * @var ModelConfigurationInterface[]|ModelCollection
      */
@@ -41,6 +44,12 @@ class Admin implements AdminInterface
     protected $missedSections = [];
 
     /**
+     * The SleepingOwl contexts.
+     */
+    const CTX_BACKEND = 'backend';
+    const CTX_FRONTEND = 'frontend';
+
+    /**
      * Admin constructor.
      *
      * @param Application $application
@@ -60,14 +69,6 @@ class Admin implements AdminInterface
     public function setTemplate(TemplateInterface $template)
     {
         $this->template = $template;
-    }
-
-    /**
-     * Initialize class.
-     */
-    public function initialize()
-    {
-        $this->template->initialize();
     }
 
     /**

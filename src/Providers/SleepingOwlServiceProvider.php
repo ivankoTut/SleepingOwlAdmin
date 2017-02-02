@@ -2,7 +2,9 @@
 
 namespace SleepingOwl\Admin\Providers;
 
+use Illuminate\Http\Request;
 use SleepingOwl\Admin\Admin;
+use SleepingOwl\Admin\Contracts\Template\TemplateInterface;
 
 class SleepingOwlServiceProvider extends AdminSectionsServiceProvider
 {
@@ -38,7 +40,15 @@ class SleepingOwlServiceProvider extends AdminSectionsServiceProvider
     protected function registerCore()
     {
         $this->app->instance('sleeping_owl', $admin = new Admin($this->app));
-        $admin->setTemplate($this->app['sleeping_owl.template']);
+
+        $this->app->resolving('sleeping_owl.template', function(TemplateInterface $template, $app) use($admin) {
+            $admin->setTemplate($template);
+            $template->initialize();
+        });
+
+        $this->app->rebinding('request', function($app, Request $request) use($admin) {
+            $admin->detectContext($request);
+        });
     }
 
     protected function registerCommands()

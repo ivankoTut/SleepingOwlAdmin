@@ -2,10 +2,10 @@
 
 namespace SleepingOwl\Admin\Widgets;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\Container\Container;
 use SleepingOwl\Admin\Contracts\Widgets\WidgetInterface;
 use SleepingOwl\Admin\Contracts\Widgets\WidgetsRegistryInterface;
 
@@ -17,19 +17,25 @@ class WidgetsRegistry implements WidgetsRegistryInterface
     protected $widgets;
 
     /**
-     * @var Container
+     * @var Application
      */
-    private $container;
+    protected $app;
 
     /**
      * BlocksRegistry constructor.
      *
-     * @param Container $container
+     * @param Application $app
      */
-    public function __construct(Container $container)
+    public function __construct(Application $app)
     {
         $this->widgets = new Collection();
-        $this->container = $container;
+        $this->app = $app;
+
+        $app->booted(function ($app) {
+            $this->placeWidgets(
+                $app[Factory::class]
+            );
+        });
     }
 
     /**
@@ -101,6 +107,6 @@ class WidgetsRegistry implements WidgetsRegistryInterface
      */
     public function createClassWidget($widget)
     {
-        return $this->container->make($widget);
+        return $this->app->make($widget);
     }
 }

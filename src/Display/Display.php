@@ -7,14 +7,14 @@ use SleepingOwl\Admin\Traits\Renderable;
 use KodiComponents\Support\HtmlAttributes;
 use SleepingOwl\Admin\Display\Extension\Apply;
 use SleepingOwl\Admin\Display\Extension\Scopes;
-use SleepingOwl\Admin\Contracts\Display\Extension\ActionInterface;
-use SleepingOwl\Admin\Contracts\Display\Extension\FilterInterface;
 use SleepingOwl\Admin\Display\Extension\Actions;
 use SleepingOwl\Admin\Display\Extension\Filters;
-use SleepingOwl\Admin\Contracts\Display\DisplayInterface;
 use SleepingOwl\Admin\Contracts\RepositoryInterface;
+use SleepingOwl\Admin\Contracts\Display\DisplayInterface;
 use SleepingOwl\Admin\Contracts\ModelConfigurationInterface;
 use SleepingOwl\Admin\Contracts\Display\DisplayExtensionInterface;
+use SleepingOwl\Admin\Contracts\Display\Extension\ActionInterface;
+use SleepingOwl\Admin\Contracts\Display\Extension\FilterInterface;
 
 /**
  * Class Display.
@@ -286,11 +286,12 @@ abstract class Display implements DisplayInterface
      */
     protected function makeRepository()
     {
-        $repository = app($this->repositoryClass, [$this->modelClass]);
-
+        $repository = app($this->repositoryClass);
         if (! ($repository instanceof RepositoryInterface)) {
             throw new \Exception('Repository class must be instanced of [RepositoryInterface]');
         }
+
+        $repository->setClass($this->modelClass);
 
         return $repository;
     }

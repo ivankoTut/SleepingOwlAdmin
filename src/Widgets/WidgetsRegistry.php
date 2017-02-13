@@ -82,7 +82,7 @@ class WidgetsRegistry implements WidgetsRegistryInterface
                 foreach ($widgets as $widget) {
                     $widget->setInjectableView($view);
 
-                    $factory->inject(
+                    $factory->startPush(
                         $widget->block(),
                         $widget->toHtml()
                     );

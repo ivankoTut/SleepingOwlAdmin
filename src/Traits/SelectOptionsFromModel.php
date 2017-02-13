@@ -194,16 +194,15 @@ trait SelectOptionsFromModel
      */
     protected function loadOptions()
     {
-        $repository = app(RepositoryInterface::class, [$this->getModelForOptions()]);
-
+        $repository = app(RepositoryInterface::class);
+        $repository->setModel($this->getModelForOptions());
         $key = $repository->getModel()->getKeyName();
 
         $options = $repository->getQuery();
 
         if ($this->isEmptyRelation() and ! is_null($foreignKey = $this->getForeignKey())) {
-            
             $relation = $this->getModelAttributeKey();
-            $model    = $this->getModel();
+            $model = $this->getModel();
 
             if ($model->{$relation}() instanceof HasOneOrMany) {
                 $options->where($foreignKey, 0)->orWhereNull($foreignKey);
